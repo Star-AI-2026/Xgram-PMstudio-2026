@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790958672673,
+      "tag": "0000_search_contacts_by_username_or_exact_email",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790998739234,
+      "tag": "0001_match_first_three_username_characters",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793590716327,
+      "tag": "0002_xgram_super_admin_security",
+      "breakpoints": true
+    }
+  ]
+}
