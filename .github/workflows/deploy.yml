@@ -47,18 +47,64 @@ jobs:
           VITE_TURN_CREDENTIAL: ${{ secrets.VITE_TURN_CREDENTIAL }}
         run: npm run build
 
-      - name: Prepare GitHub Pages SPA fallback
+      - name: Find and prepare SPA output
+        shell: bash
         run: |
-          test -f dist/index.html
-          cp dist/index.html dist/404.html
-          touch dist/.nojekyll
-          echo "Static SPA output prepared:"
-          find dist -maxdepth 2 -type f | sort | head -100
+          set -euo pipefail
+
+          echo "Searching for index.html..."
+
+          INDEX_FILE=""
+
+          # Check common output locations first
+          for file in \
+            "dist/index.html" \
+            "dist/client/index.html" \
+            ".output/public/index.html" \
+            "build/index.html" \
+            "public/index.html"
+          do
+            if [ -f "$file" ]; then
+              INDEX_FILE="$file"
+              break
+            fi
+          done
+
+          # Search other build directories if necessary
+          if [ -z "$INDEX_FILE" ]; then
+            INDEX_FILE=$(find . \
+              -type d \( -name node_modules -o -name .git \) -prune \
+              -o -type f -name index.html -print \
+              | head -n 1 || true)
+          fi
+
+          if [ -z "$INDEX_FILE" ] || [ ! -f "$INDEX_FILE" ]; then
+            echo "ERROR: index.html was not found."
+            echo "Build output:"
+            find . \
+              -type d \( -name node_modules -o -name .git \) -prune \
+              -o -type f -print \
+              | head -200
+            exit 1
+          fi
+
+          PAGES_DIR="$(dirname "$INDEX_FILE")"
+
+          echo "Found: $INDEX_FILE"
+          echo "Pages directory: $PAGES_DIR"
+
+          cp "$INDEX_FILE" "$PAGES_DIR/404.html"
+
+          echo "PAGES_DIR=$PAGES_DIR" >> "$GITHUB_ENV"
+
+          echo "Prepared SPA fallback successfully."
+
+          ls -la "$PAGES_DIR"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: ${{ env.PAGES_DIR }}
 
   deploy:
     needs: build
