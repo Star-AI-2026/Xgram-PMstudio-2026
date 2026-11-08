@@ -5,7 +5,7 @@
 - نسخه‌های قدیمی مسیرهای پنل مدیریت در `legacy-admin-routes/` باقی مانده‌اند و حذف نشده‌اند.
 - پیام‌رسان اصلی با React + TanStack Router و Supabase از داخل مرورگر اجرا می‌شود.
 - مسیر پایه مخزن در Vite و Router روی `/Xgram-PMstudio-2026/` تنظیم است.
-- Workflow از Bun و فایل قفل `bun.lock` استفاده می‌کند.
+- Workflow فقط از Node.js و npm استفاده می‌کند؛ نصب Bun روی رایانه لازم نیست.
 - فایل `404.html` از `index.html` ساخته می‌شود تا Refresh مسیرهای داخلی GitHub Pages کار کند.
 - کش IndexedDB گفتگوها و پیام‌ها حفظ شده است.
 
@@ -23,7 +23,7 @@
 - `VITE_TURN_CREDENTIAL`
 
 ## انتشار
-1. تمام محتویات این ZIP را در ریشه مخزن `Star-AI-2026/Xgram-PMstudio-2026` جایگزین کنید.
+1. قبل از جایگزینی، فایل `.env` محلی را در محل امنی کپی کنید؛ این فایل عمداً در ZIP نیست. سپس محتویات ZIP را در ریشه مخزن `Star-AI-2026/Xgram-PMstudio-2026` جایگزین کنید و `.env` را فقط برای اجرای محلی برگردانید؛ آن را Commit نکنید.
 2. Commit و Push را روی شاخه `main` انجام دهید.
 3. در GitHub → Actions اجرای `Deploy Xgram to GitHub Pages` را بررسی کنید.
 
