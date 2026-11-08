@@ -7,6 +7,7 @@ export const getRouter = () => {
 
   const router = createRouter({
     routeTree,
+    basepath: "/Xgram-PMstudio-2026",
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,

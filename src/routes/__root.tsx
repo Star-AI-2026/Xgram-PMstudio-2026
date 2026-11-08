@@ -4,14 +4,10 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
-  useRouterState,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { CallProvider } from "@/lib/calls";
@@ -74,7 +70,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             Try again
           </button>
           <a
-            href="/"
+            href="/Xgram-PMstudio-2026/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
@@ -105,42 +101,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap",
       },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/favicon.png" },
+      { rel: "manifest", href: "/Xgram-PMstudio-2026/manifest.webmanifest" },
+      { rel: "icon", href: "/Xgram-PMstudio-2026/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/Xgram-PMstudio-2026/favicon.png" },
     ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
 
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
-  const adminPage = useRouterState({ select: (state) => state.location.pathname.startsWith('/admin') });
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -160,7 +139,7 @@ function RootComponent() {
               <CallProvider>
                 <TooltipProvider delayDuration={200}>
                   {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                  {adminPage ? <Outlet /> : <AccountAccessBoundary><Outlet /><CallOverlay /><NetworkStatusOverlay /></AccountAccessBoundary>}
+                  <AccountAccessBoundary><Outlet /><CallOverlay /><NetworkStatusOverlay /></AccountAccessBoundary>
                   <Toaster position="top-center" richColors />
 
                 </TooltipProvider>

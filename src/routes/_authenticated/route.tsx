@@ -2,7 +2,6 @@ import { createFileRoute, isRedirect, Outlet, redirect } from "@tanstack/react-r
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
-  ssr: false,
   beforeLoad: async () => {
     // The stored session is restored locally first. Only when there is no stored
     // session at all do we send the visitor to the sign-in page — a temporary
