@@ -32,7 +32,22 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
+
+      - name: Verify browser bundle has no TanStack Start server code
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE '@tanstack/react-start|@tanstack/start-server-core|createServerFn|useServerFn|createMiddleware|SUPABASE_SERVICE_ROLE_KEY|LOVABLE_CRON_SECRET|node:crypto|process\.env' src; then
+            echo "ERROR: TanStack Start/server-only code is still inside src/."
+            exit 1
+          fi
+          if find src -type f \( -name '*.server.ts' -o -name '*.server.tsx' -o -name 'server.ts' -o -name 'start.ts' \) | grep -q .; then
+            echo "ERROR: server entry files must not be placed inside src/."
+            find src -type f \( -name '*.server.ts' -o -name '*.server.tsx' -o -name 'server.ts' -o -name 'start.ts' \)
+            exit 1
+          fi
+          echo "Pure browser SPA source check passed."
 
       - name: Verify Supabase configuration
         env:

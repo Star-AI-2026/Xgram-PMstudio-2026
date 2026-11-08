@@ -1,13 +1,13 @@
 # راه‌اندازی Xgram روی GitHub Pages
 
-## چه چیزی در این نسخه تغییر کرده؟
-- مسیرهای فعال پنل مدیریت از `src/routes/` خارج شده‌اند تا وارد Bundle عمومی SPA نشوند.
-- نسخه‌های قدیمی مسیرهای پنل مدیریت در `legacy-admin-routes/` باقی مانده‌اند و حذف نشده‌اند.
-- پیام‌رسان اصلی با React + TanStack Router و Supabase از داخل مرورگر اجرا می‌شود.
-- مسیر پایه مخزن در Vite و Router روی `/Xgram-PMstudio-2026/` تنظیم است.
+## ساختار این نسخه
+- برنامه عمومی به‌صورت React SPA و با TanStack Router اجرا می‌شود؛ GitHub Pages نیازی به سرور Node ندارد.
+- وابستگی `@tanstack/react-start` از `package.json` نسخه عمومی حذف شده است.
+- فایل‌های سروری و پنل مدیریت، از جمله `createServerFn`، `useServerFn`، Middlewareهای Start، Supabase Service Role client و `cron-auth.ts` از `src/` خارج شده‌اند و در `legacy-admin-routes/` و `legacy-admin-source/` نگهداری می‌شوند.
+- پنل مدیریت در نسخه عمومی GitHub Pages فعال نیست؛ برای آن باید Backend جداگانه مستقر شود.
+- مسیر پایه در Vite و TanStack Router برابر `/Xgram-PMstudio-2026/` است.
 - Workflow فقط از Node.js و npm استفاده می‌کند؛ نصب Bun روی رایانه لازم نیست.
-- فایل `404.html` از `index.html` ساخته می‌شود تا Refresh مسیرهای داخلی GitHub Pages کار کند.
-- کش IndexedDB گفتگوها و پیام‌ها حفظ شده است.
+- کش IndexedDB گفتگوها و پیام‌ها و اتصال مستقیم برنامه به Supabase حفظ شده است.
 
 ## Secrets ضروری در GitHub
 در Repository → Settings → Secrets and variables → Actions این دو Repository secret را اضافه کنید:
@@ -23,17 +23,19 @@
 - `VITE_TURN_CREDENTIAL`
 
 ## انتشار
-1. قبل از جایگزینی، فایل `.env` محلی را در محل امنی کپی کنید؛ این فایل عمداً در ZIP نیست. سپس محتویات ZIP را در ریشه مخزن `Star-AI-2026/Xgram-PMstudio-2026` جایگزین کنید و `.env` را فقط برای اجرای محلی برگردانید؛ آن را Commit نکنید.
-2. Commit و Push را روی شاخه `main` انجام دهید.
-3. در GitHub → Actions اجرای `Deploy Xgram to GitHub Pages` را بررسی کنید.
+1. از `.env` محلی نسخه پشتیبان بگیرید؛ این فایل عمداً در ZIP نیست.
+2. محتویات ZIP را در ریشه مخزن `Star-AI-2026/Xgram-PMstudio-2026` جایگزین کنید. هنگام جایگزینی فایل‌های قدیمی را هم پاک کنید؛ پوشه `.git` و فایل محلی `.env` را نگه دارید.
+3. در GitHub → Settings → Pages، گزینه Source را روی `GitHub Actions` قرار دهید.
+4. در GitHub Desktop تغییرات را Commit و Push کنید.
+5. در GitHub → Actions اجرای `Deploy Xgram to GitHub Pages` را بررسی کنید.
 
 آدرس مورد انتظار:
 `https://star-ai-2026.github.io/Xgram-PMstudio-2026/`
 
 ## نکات امنیتی و محدودیت‌ها
-- فایل محلی `.env` عمداً داخل ZIP قرار نگرفته است. آن را در کامپیوتر خود نگه دارید، اما در GitHub Commit نکنید.
+- فایل `.env` محلی داخل ZIP نیست. آن را Commit نکنید.
 - `.env.example` برای راهنمای تنظیمات باقی مانده است.
-- کلید Supabase سمت مرورگر باید Publishable/anon باشد؛ کلید محرمانه یا Service Role نباید منتشر شود.
-- پنل مدیریت قدیمی در نسخه GitHub Pages فعال نیست؛ GitHub Pages امکان اجرای توابع امن سمت سرور و نشست مدیریتی را ندارد. کدهای قدیمی آن در `legacy-admin-routes/` و فایل‌های مرتبط نگهداری شده‌اند.
+- کلید Supabase سمت مرورگر باید Publishable/anon باشد و با Row Level Security و Policyهای درست محافظت شود. هرگز `service_role` یا `sb_secret` را در متغیرهای `VITE_` قرار ندهید.
+- پنل مدیریت قدیمی در نسخه GitHub Pages اجرا نمی‌شود؛ GitHub Pages امکان اجرای Server Function یا نگهداری امن کلید Service Role را ندارد.
 - پیام‌ها و داده‌های اصلی همچنان در Supabase ذخیره می‌شوند؛ IndexedDB فقط Cache محلی هر مرورگر است.
-- Build نهایی در این محیط تأیید نشده است؛ نصب وابستگی‌ها در محیط اجرا به پایان نرسید. پس از Push، نتیجه GitHub Actions را بررسی کنید.
+- در محیط آماده‌سازی فعلی npm registry در دسترس نبود، بنابراین Build نهایی از این محیط تأیید نشده است. GitHub Actions باید Build را اجرا کند.
