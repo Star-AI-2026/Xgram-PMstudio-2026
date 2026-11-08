@@ -1,12 +1,13 @@
 # راه‌اندازی Xgram روی GitHub Pages
 
-## تغییرات این نسخه
-- برنامه به یک React SPA استاتیک تبدیل شده و دیگر برای اجرای نسخه اصلی به Nitro/Cloudflare SSR نیاز ندارد.
-- مسیر پایه برای مخزن `Xgram-PMstudio-2026` تنظیم شده است.
-- مسیرهای ورود، چت، مخاطبین، پروفایل و تنظیمات در سمت مرورگر مدیریت می‌شوند.
-- فایل `404.html` از `index.html` ساخته می‌شود تا مسیرهای داخلی در GitHub Pages پس از Refresh باز شوند.
-- کدهای قبلی پنل مدیریت در `legacy-admin-routes/` نگه داشته شده‌اند و در نسخه عمومی Pages ثبت/منتشر نمی‌شوند؛ توابع مدیریتی سمت سرور روی GitHub Pages قابل اجرا نیستند.
-- کش IndexedDB پیام‌ها و فهرست گفتگوها حفظ شده است.
+## چه چیزی در این نسخه تغییر کرده؟
+- مسیرهای فعال پنل مدیریت از `src/routes/` خارج شده‌اند تا وارد Bundle عمومی SPA نشوند.
+- نسخه‌های قدیمی مسیرهای پنل مدیریت در `legacy-admin-routes/` باقی مانده‌اند و حذف نشده‌اند.
+- پیام‌رسان اصلی با React + TanStack Router و Supabase از داخل مرورگر اجرا می‌شود.
+- مسیر پایه مخزن در Vite و Router روی `/Xgram-PMstudio-2026/` تنظیم است.
+- Workflow از Bun و فایل قفل `bun.lock` استفاده می‌کند.
+- فایل `404.html` از `index.html` ساخته می‌شود تا Refresh مسیرهای داخلی GitHub Pages کار کند.
+- کش IndexedDB گفتگوها و پیام‌ها حفظ شده است.
 
 ## Secrets ضروری در GitHub
 در Repository → Settings → Secrets and variables → Actions این دو Repository secret را اضافه کنید:
@@ -22,12 +23,17 @@
 - `VITE_TURN_CREDENTIAL`
 
 ## انتشار
-پس از ثبت Secrets، تمام فایل‌های این ZIP را در ریشه مخزن GitHub جایگزین کنید و Commit کنید. Workflow با هر Push به شاخه `main` اجرا می‌شود.
+1. تمام محتویات این ZIP را در ریشه مخزن `Star-AI-2026/Xgram-PMstudio-2026` جایگزین کنید.
+2. Commit و Push را روی شاخه `main` انجام دهید.
+3. در GitHub → Actions اجرای `Deploy Xgram to GitHub Pages` را بررسی کنید.
 
-آدرس مورد انتظار Pages: `https://star-ai-2026.github.io/Xgram-PMstudio-2026/`
+آدرس مورد انتظار:
+`https://star-ai-2026.github.io/Xgram-PMstudio-2026/`
 
-## نکات مهم
-- برای کارکرد ورود با Google/OAuth، آدرس GitHub Pages را در تنظیمات Supabase Auth → URL Configuration و Redirect URLs مجاز کنید.
-- در Supabase، RLS باید برای جدول‌ها و Storage فعال و سیاست‌ها درست تنظیم شده باشند.
-- پنل مدیریت قدیمی در این نسخه‌ی استاتیک فعال نیست؛ چون به توابع امن سمت سرور و نشست مدیریتی نیاز دارد.
-- این پروژه در محیط فعلی Build نهایی نشده است؛ پس از Push، نتیجه‌ی GitHub Actions را بررسی کنید.
+## نکات امنیتی و محدودیت‌ها
+- فایل محلی `.env` عمداً داخل ZIP قرار نگرفته است. آن را در کامپیوتر خود نگه دارید، اما در GitHub Commit نکنید.
+- `.env.example` برای راهنمای تنظیمات باقی مانده است.
+- کلید Supabase سمت مرورگر باید Publishable/anon باشد؛ کلید محرمانه یا Service Role نباید منتشر شود.
+- پنل مدیریت قدیمی در نسخه GitHub Pages فعال نیست؛ GitHub Pages امکان اجرای توابع امن سمت سرور و نشست مدیریتی را ندارد. کدهای قدیمی آن در `legacy-admin-routes/` و فایل‌های مرتبط نگهداری شده‌اند.
+- پیام‌ها و داده‌های اصلی همچنان در Supabase ذخیره می‌شوند؛ IndexedDB فقط Cache محلی هر مرورگر است.
+- Build نهایی در این محیط تأیید نشده است؛ نصب وابستگی‌ها در محیط اجرا به پایان نرسید. پس از Push، نتیجه GitHub Actions را بررسی کنید.
