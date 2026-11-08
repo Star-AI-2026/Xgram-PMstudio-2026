@@ -1,30 +1,57 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { getCachedChatSummaries, saveCachedChatSummaries } from "@/lib/local-cache";
 import { fetchChatSummaries, type ChatSummary } from "@/lib/xgram";
 
-/** Loads the signed-in user's conversations and keeps them fresh in real time. */
+/** Loads cached conversations immediately, then reconciles them with Supabase. */
 export function useChats() {
   const { user } = useAuth();
   const [summaries, setSummaries] = useState<ChatSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const activeUserId = useRef<string | null>(user?.id ?? null);
+  activeUserId.current = user?.id ?? null;
 
   const refresh = useCallback(async (strict = false) => {
-    if (!user) return;
+    if (!user) {
+      setSummaries([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      setSummaries(await fetchChatSummaries(user.id));
+      const fresh = await fetchChatSummaries(user.id);
+      if (activeUserId.current !== user.id) return;
+      setSummaries(fresh);
+      void saveCachedChatSummaries(user.id, fresh);
     } catch {
       if (strict) throw new Error("Conversations synchronization failed");
-      // Ignore transient fetch errors; the next realtime event retries.
+      // Keep the last known local copy during temporary network failures.
     } finally {
       setLoading(false);
     }
   }, [user]);
 
+  // Hydrate from this account's local cache before the first network round-trip.
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let active = true;
+    setLoading(true);
+    setSummaries([]);
+
+    if (!user) {
+      setLoading(false);
+      return () => { active = false; };
+    }
+
+    void getCachedChatSummaries(user.id).then(async (cached) => {
+      if (!active) return;
+      if (cached) setSummaries(cached);
+      setLoading(false);
+      await refresh();
+    });
+    return () => { active = false; };
+  }, [user?.id, refresh]);
 
   useEffect(() => {
     const resync = (event: Event) => {
@@ -49,10 +76,12 @@ export function useChats() {
     };
   }, [user, refresh]);
 
-  // Reliable recovery also covers missed moderation events and reconnects.
+  // Periodic reconciliation is a fallback for missed realtime events.
   useEffect(() => {
     if (!user) return;
-    const timer = setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 15000);
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 30_000);
     return () => clearInterval(timer);
   }, [user, refresh]);
 

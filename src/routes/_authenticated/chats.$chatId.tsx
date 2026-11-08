@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { useCall } from "@/lib/calls";
 import { useI18n } from "@/lib/i18n";
 import { uploadMedia } from "@/lib/media";
+import { getCachedChatSnapshot, saveCachedChatSnapshot } from "@/lib/local-cache";
 import { usePresence } from "@/lib/presence";
 import {
   fetchMessageReads,
@@ -74,8 +75,22 @@ function ChatView() {
   const activityChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastTypingSent = useRef(0);
   const typingStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cacheHydratedFor = useRef<string | null>(null);
 
   const load = useCallback(async () => {
+    const cacheKey = user ? `${user.id}:${chatId}` : null;
+    if (user && cacheHydratedFor.current !== cacheKey) {
+      cacheHydratedFor.current = cacheKey;
+      const cached = await getCachedChatSnapshot(user.id, chatId);
+      if (cached) {
+        setChat(cached.chat);
+        setMembers(cached.members);
+        setMessages(cached.messages);
+        setProfiles(new Map(cached.profiles.map((item) => [item.id, item])));
+        setLoading(false);
+      }
+    }
+
     const [chatRes, memberRes, messageRes] = await Promise.all([
       supabase.from("chats").select("*").eq("id", chatId).maybeSingle(),
       supabase.from("chat_members").select("*").eq("chat_id", chatId),
@@ -94,11 +109,13 @@ function ChatView() {
     setMessages(messageRows);
 
     const ids = Array.from(new Set(memberRows.map((m) => m.user_id)));
+    let profileRows: Profile[] = [];
     if (ids.length) {
       const { data, error } = await supabase.from("profiles").select("*").in("id", ids);
       if (error) throw error;
-      setProfiles(new Map(((data ?? []) as Profile[]).map((p) => [p.id, p])));
+      profileRows = (data ?? []) as Profile[];
     }
+    setProfiles(new Map(profileRows.map((p) => [p.id, p])));
 
     if (messageRows.length) {
       const { data, error } = await supabase
@@ -113,8 +130,18 @@ function ChatView() {
 
     setReads(await fetchMessageReads(chatId));
 
+    if (user && chatRow) {
+      void saveCachedChatSnapshot(user.id, chatId, {
+        chat: chatRow,
+        members: memberRows,
+        messages: messageRows,
+        profiles: profileRows,
+        savedAt: Date.now(),
+      });
+    }
+
     setLoading(false);
-  }, [chatId]);
+  }, [chatId, user?.id]);
 
   useEffect(() => {
     setLoading(true);

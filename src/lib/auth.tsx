@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearUserCache } from "@/lib/local-cache";
 import type { Profile } from "@/lib/xgram";
 
 type AuthContextValue = {
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const settled = useRef(false);
+  const lastUserId = useRef<string | null>(null);
 
   const loadProfile = useCallback(async (userId: string, strict = false) => {
     try {
@@ -48,7 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!active) return;
       setSession(nextSession);
 
+      if (nextSession?.user?.id) lastUserId.current = nextSession.user.id;
+
       if (event === "SIGNED_OUT") {
+        if (lastUserId.current) void clearUserCache(lastUserId.current);
+        lastUserId.current = null;
         setProfile(null);
         finish();
         return;
@@ -66,7 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data } = await supabase.auth.getSession();
         if (!active) return;
         setSession(data.session);
-        if (data.session?.user) await loadProfile(data.session.user.id);
+        if (data.session?.user) {
+          lastUserId.current = data.session.user.id;
+          await loadProfile(data.session.user.id);
+        }
       } catch {
         // Offline or a temporarily unreachable backend: stay signed out quietly
         // instead of crashing the app shell.
