@@ -2,8 +2,8 @@
 
 - این نسخه فقط از React + TanStack Router در مرورگر استفاده می‌کند.
 - وابستگی `@tanstack/react-start` از `package.json` نسخه عمومی حذف شده است.
-- کد و مسیرهای پنل مدیریت از بستهٔ قابل‌اشتراک حذف شده‌اند.
-- رابط کاربری این نسخه بدون افکت Blur و Liquid Glass است.
+- فایل‌های وابسته به `createServerFn`، `useServerFn`، `createMiddleware` و `@tanstack/react-start/server` از `src/` خارج و در `legacy-admin-source/` نگهداری شده‌اند.
+- پنل مدیریت در خروجی GitHub Pages اجرا نمی‌شود؛ GitHub Pages قابلیت اجرای توابع سمت سرور را ندارد.
 - مسیرهای پیام‌رسان، Supabase client، احراز هویت کاربر، چت‌ها و کش IndexedDB در نسخه عمومی نگه داشته شده‌اند.
 - `vite-tsconfig-paths` حذف شده و قابلیت بومی `resolve.tsconfigPaths` در Vite فعال است.
 

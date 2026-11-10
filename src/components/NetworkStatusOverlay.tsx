@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { fetchChatSummaries, fetchMessageReads } from "@/lib/xgram";
+import { XgramLogo } from "@/components/XgramLogo";
 
 type NetworkState = "online" | "offline" | "connecting" | "updating" | "ready";
 const CONNECTING_MS = 5000;
@@ -147,6 +148,9 @@ export function NetworkStatusOverlay() {
           const sync: Promise<unknown>[] = [
             authRef.current.refreshProfile(),
             fetchChatSummaries(currentUser.id, signal),
+            Promise.resolve(supabase.from("calls").select("id,status,updated_at")
+              .or(`caller_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).limit(100).abortSignal(signal)
+              .then(({ error }) => { if (error) throw error; })),
             queryClient.refetchQueries({ type: "active" }),
           ];
           if (chatId) {
@@ -201,20 +205,27 @@ export function NetworkStatusOverlay() {
     : state === "updating" ? t("network.updating")
       : state === "ready" ? "Xgram" : t("network.connecting");
 
+  const isReady = state === "ready" || state === "online";
+
   return (
-    <div
+    <span
       role="status"
       aria-live="polite"
-      aria-hidden={state === "online"}
-      className={`fixed inset-0 z-[120] bg-background text-foreground transition-opacity duration-500 motion-reduce:transition-none ${state === "online" ? "pointer-events-none opacity-0" : "opacity-100"}`}
+      dir={isReady ? "ltr" : dir}
+      className="inline-flex min-h-8 max-w-full items-center gap-2 overflow-hidden whitespace-nowrap"
     >
-      <div
-        dir={state === "ready" ? "ltr" : dir}
-        className="absolute left-[45.25%] top-[118px] flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 whitespace-nowrap"
-      >
-        <span className="font-display text-xl font-semibold sm:text-2xl">{label}</span>
-        {state !== "ready" && state !== "online" && <Dots />}
-      </div>
-    </div>
+      {isReady ? (
+        // The Xgram symbol replaces the letter "X"; do not print a second X
+        // or duplicate the icon on either side of the wordmark.
+        <XgramLogo size={28} withWordmark wordmarkText="gram" />
+      ) : (
+        <>
+          <span className="truncate text-sm font-semibold text-foreground sm:text-base">
+            {label}
+          </span>
+          <Dots />
+        </>
+      )}
+    </span>
   );
 }

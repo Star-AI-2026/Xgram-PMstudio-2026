@@ -38,6 +38,8 @@ function Landing() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-background">
+      <div className="pointer-events-none absolute -top-40 -right-32 size-[32rem] rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -left-32 size-[28rem] rounded-full bg-accent/25 blur-3xl" />
 
       <header className="relative mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
         <XgramLogo size={32} withWordmark />
@@ -70,7 +72,7 @@ function Landing() {
 
         <div className="mt-16 grid gap-4 text-left sm:grid-cols-2">
           {FEATURES.map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+            <div key={feature.title} className="glass-panel rounded-2xl p-5 shadow-soft">
               <feature.icon className="size-5 text-primary" />
               <h2 className="mt-3 text-sm font-semibold">{feature.title}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{feature.text}</p>

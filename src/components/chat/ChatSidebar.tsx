@@ -10,7 +10,7 @@ import {
   PinOff,
   Plus,
   Search,
-  MoreHorizontal,
+  Settings,
   Users,
   BadgeCheck,
   Megaphone,
@@ -30,8 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/UserAvatar";
-import { XgramLogo } from "@/components/XgramLogo";
-import { NetworkStatusIndicator } from "@/components/NetworkStatusIndicator";
+import { NetworkStatusOverlay } from "@/components/NetworkStatusOverlay";
 import { NewChatDialog } from "@/components/chat/NewChatDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -119,13 +118,10 @@ export function ChatSidebar({
   return (
     <aside className={cn("xgram-sidebar flex h-full min-h-0 w-full flex-col bg-sidebar text-sidebar-foreground", className)}>
       <div className="flex items-center justify-between gap-2 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Link to="/chats" className="flex shrink-0 items-center gap-2">
-            <XgramLogo size={28} withWordmark />
-          </Link>
-          <NetworkStatusIndicator loading={loading} />
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <Link to="/chats" className="flex min-w-0 items-center gap-2" aria-label="Xgram">
+          <NetworkStatusOverlay />
+        </Link>
+        <div className="flex items-center gap-1">
           <Button size="icon" variant="ghost" className="size-9" onClick={() => setDialogOpen(true)} aria-label={t("chat.newChat")}>
             <Plus className="size-5" />
           </Button>
@@ -147,6 +143,9 @@ export function ChatSidebar({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => void navigate({ to: "/contacts" })}>
                 <MessagesSquare className="size-4" /> {t("common.contacts")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => void navigate({ to: "/settings" })}>
+                <Settings className="size-4" /> {t("common.settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => void handleSignOut()}>
@@ -269,7 +268,7 @@ export function ChatSidebar({
                     className="absolute top-1 right-1 size-6 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
                     aria-label="Chat options"
                   >
-                    <MoreHorizontal className="size-3.5" />
+                    <Settings className="size-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">

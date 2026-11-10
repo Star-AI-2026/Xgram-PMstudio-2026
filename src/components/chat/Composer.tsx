@@ -11,9 +11,6 @@ import { formatBytes } from "@/lib/media";
 import { cn } from "@/lib/utils";
 import type { Message } from "@/lib/xgram";
 
-// This shareable demo is intentionally read-only: no message payload can be sent.
-const DEMO_DISABLE_MESSAGE_SENDING = true;
-
 const EMOJIS = [
   "😀","😂","😍","😎","🤔","😴","👍","🙏","🔥","🎉","❤️","✨","💡","✅","🚀","📎","🎧","📷","😅","😇",
 ];
@@ -78,7 +75,7 @@ export function Composer({
   );
 
   const submit = async () => {
-    if (DEMO_DISABLE_MESSAGE_SENDING || sending || disabled) return;
+    if (sending || disabled) return;
     if (!value.trim() && !file) return;
     setSending(true);
     try {
@@ -224,8 +221,7 @@ export function Composer({
             size="icon"
             className="size-10 shrink-0 rounded-full"
             onClick={() => void submit()}
-            disabled={DEMO_DISABLE_MESSAGE_SENDING || sending}
-            title={DEMO_DISABLE_MESSAGE_SENDING ? "Message sending is disabled in this demo" : undefined}
+            disabled={sending}
             aria-label={t("chat.sendMessage")}
           >
             {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4 rtl:rotate-180" />}
