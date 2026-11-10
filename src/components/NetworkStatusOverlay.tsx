@@ -217,7 +217,7 @@ export function NetworkStatusOverlay() {
       {isReady ? (
         // The Xgram symbol replaces the letter "X"; do not print a second X
         // or duplicate the icon on either side of the wordmark.
-        <XgramLogo size={28} withWordmark wordmarkText="gram" />
+        <XgramLogo size={28} withWordmark wordmarkText="gram" className="gap-0.5" />
       ) : (
         <>
           <span className="truncate text-sm font-semibold text-foreground sm:text-base">

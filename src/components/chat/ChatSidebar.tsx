@@ -117,11 +117,15 @@ export function ChatSidebar({
 
   return (
     <aside className={cn("xgram-sidebar flex h-full min-h-0 w-full flex-col bg-sidebar text-sidebar-foreground", className)}>
-      <div className="flex items-center justify-between gap-2 px-4 py-3">
-        <Link to="/chats" className="flex min-w-0 items-center gap-2" aria-label="Xgram">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-4 py-3">
+        <Link
+          to="/chats"
+          className="col-start-2 flex min-w-0 max-w-full items-center justify-center justify-self-center"
+          aria-label="Xgram"
+        >
           <NetworkStatusOverlay />
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="col-start-3 flex items-center justify-self-end gap-1">
           <Button size="icon" variant="ghost" className="size-9" onClick={() => setDialogOpen(true)} aria-label={t("chat.newChat")}>
             <Plus className="size-5" />
           </Button>

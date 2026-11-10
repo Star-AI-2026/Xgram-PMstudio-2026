@@ -1,4 +1,4 @@
-import logo from "@/assets/xgram-logo.png";
+import logo from "@/assets/xgram-logo-tight.png";
 import { cn } from "@/lib/utils";
 
 export function XgramLogo({
