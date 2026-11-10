@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/UserAvatar";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { getOrCreateDirectChat } from "@/lib/xgram";
+import { searchProfiles, type ContactSearchResult } from "@/lib/contact-search";
 import { useI18n } from "@/lib/i18n";
 import { usePresence } from "@/lib/presence";
 
@@ -31,10 +31,7 @@ function ContactsPage() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { isUserOnline } = usePresence();
-  type ContactResult = {
-    id: string; username: string; display_name: string; avatar_url: string | null;
-    is_verified: boolean; last_seen: string;
-  };
+  type ContactResult = ContactSearchResult;
   const [people, setPeople] = useState<ContactResult[]>([]);
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState(false);
@@ -51,10 +48,10 @@ function ContactsPage() {
     setPeople([]);
     setSearched(false);
     setLoading(false);
-    const usernameValid = /^@[a-zA-Z0-9_]{3,32}$/.test(term);
-    const emailValid = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i.test(term) && term.length <= 254;
-    if (!usernameValid && !emailValid) {
-      setError(t("contacts.invalid"));
+    const usernameValid = /^@[\p{L}\p{N}_]{3,32}$/u.test(term);
+    const nameValid = !term.startsWith("@") && term.length >= 3 && term.length <= 100 && !term.includes("@");
+    if (!usernameValid && !nameValid) {
+      setError(term.includes("@") ? t("contacts.emailUnavailable") : t("contacts.invalid"));
       return;
     }
     searchedQuery.current = term;
@@ -62,10 +59,9 @@ function ContactsPage() {
     setSearched(true);
     setLoading(true);
     try {
-      const { data, error: searchError } = await supabase.rpc("search_xgram_contacts", { _query: term });
+      const data = await searchProfiles(term, user?.id ?? "");
       if (current !== requestId.current) return;
-      if (searchError) throw searchError;
-      setPeople((data ?? []) as ContactResult[]);
+      setPeople(data);
     } catch {
       if (current === requestId.current) setError(t("contacts.searchError"));
     } finally {
@@ -78,16 +74,15 @@ function ContactsPage() {
       const term = searchedQuery.current;
       if (!term) return;
       const current = ++requestId.current;
-      const task = Promise.resolve(supabase.rpc("search_xgram_contacts", { _query: term }).then(({ data, error: searchError }) => {
+      const task = searchProfiles(term, user?.id ?? "").then((data) => {
         if (current !== requestId.current) return;
-        if (searchError) throw searchError;
-        setPeople((data ?? []) as ContactResult[]);
-      }));
+        setPeople(data);
+      });
       (event as CustomEvent<{ waitUntil?: (task: Promise<unknown>) => void }>).detail?.waitUntil?.(task);
     };
     window.addEventListener("xgram:resync", resync);
     return () => window.removeEventListener("xgram:resync", resync);
-  }, []);
+  }, [user?.id]);
 
   const openChat = async (person: ContactResult) => {
     if (!user) return;

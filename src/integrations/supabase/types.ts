@@ -511,17 +511,6 @@ export type Database = {
         Returns: boolean
       }
       mark_messages_as_read: { Args: { _chat_id: string }; Returns: number }
-      search_xgram_contacts: {
-        Args: { _query: string }
-        Returns: {
-          avatar_url: string
-          display_name: string
-          id: string
-          is_verified: boolean
-          last_seen: string
-          username: string
-        }[]
-      }
       set_member_role: {
         Args: { _chat_id: string; _role: string; _user_id: string }
         Returns: undefined

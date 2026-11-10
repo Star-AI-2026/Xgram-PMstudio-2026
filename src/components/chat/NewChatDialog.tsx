@@ -16,8 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { createGroupChat, getOrCreateDirectChat, isOnline, type Profile } from "@/lib/xgram";
+import { createGroupChat, getOrCreateDirectChat, isOnline } from "@/lib/xgram";
+import { searchProfiles, type ContactSearchResult } from "@/lib/contact-search";
 
 export function NewChatDialog({
   open,
@@ -33,33 +33,53 @@ export function NewChatDialog({
   const { user } = useAuth();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [people, setPeople] = useState<Profile[]>([]);
+  const [people, setPeople] = useState<ContactSearchResult[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
+  const searchTerm = query.trim();
+  const emailSearch = searchTerm.includes("@") && !searchTerm.startsWith("@");
+  const searchableTerm = searchTerm.startsWith("@") ? searchTerm.slice(1).trim() : searchTerm;
+  const canSearch = searchableTerm.length >= 3 && !emailSearch;
 
   useEffect(() => {
     if (!open || !user) return;
+    if (!canSearch) {
+      setPeople([]);
+      setLoading(false);
+      return;
+    }
+
     let active = true;
     setLoading(true);
     const timer = setTimeout(async () => {
-      let request = supabase.from("profiles").select("*").neq("id", user.id).limit(30);
-      if (query.trim()) {
-        request = request.or(`display_name.ilike.%${query.trim()}%,username.ilike.%${query.trim()}%`);
+      try {
+        const data = await searchProfiles(searchTerm, user.id);
+        if (active) setPeople(data);
+      } catch {
+        if (active) setPeople([]);
+      } finally {
+        if (active) setLoading(false);
       }
-      const { data } = await request;
-      if (!active) return;
-      setPeople((data ?? []) as Profile[]);
-      setLoading(false);
-    }, 250);
+    }, 300);
+
     return () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [query, open, user]);
+  }, [canSearch, open, searchTerm, user]);
 
-  const startDirect = async (peer: Profile) => {
+  useEffect(() => {
+    if (open) return;
+    setQuery("");
+    setPeople([]);
+    setSelected([]);
+    setTitle("");
+    setLoading(false);
+  }, [open]);
+
+  const startDirect = async (peer: ContactSearchResult) => {
     if (!user) return;
     setBusy(true);
     try {
@@ -101,8 +121,16 @@ export function NewChatDialog({
         <div className="flex items-center justify-center py-8 text-muted-foreground">
           <Loader2 className="size-5 animate-spin" />
         </div>
+      ) : emailSearch ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Search by name or @username. Exact email search requires database administrator access.
+        </p>
+      ) : !canSearch ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Type at least 3 characters to search for people.
+        </p>
       ) : people.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No people found.</p>
+        <p className="py-8 text-center text-sm text-muted-foreground">No matching people found.</p>
       ) : (
         people.map((person) => (
           <button
@@ -161,8 +189,12 @@ export function NewChatDialog({
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search people by name or @username"
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPeople([]);
+                setLoading(false);
+              }}
+              placeholder="Name or @username (3+ characters)"
               className="pl-9"
             />
           </div>
