@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Camera, Loader2, Search, ShieldCheck, ShieldMinus, UserPlus, BadgeCheck } from "lucide-react";
+import { Loader2, Search, ShieldCheck, ShieldMinus, UserPlus, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,28 +12,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserAvatar } from "@/components/UserAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { usePresence } from "@/lib/presence";
-import { uploadMedia } from "@/lib/media";
 import {
   getOrCreateDirectChat,
   type Chat,
   type ChatMember,
-  type ChatPermission,
   type Profile,
 } from "@/lib/xgram";
 
@@ -46,108 +35,54 @@ type Props = {
   onChanged: () => void;
 };
 
-const PERMISSION_FIELDS = [
-  { column: "send_messages_policy", label: "group.whoCanSend" },
-  { column: "send_media_policy", label: "group.whoCanMedia" },
-  { column: "send_files_policy", label: "group.whoCanFiles" },
-  { column: "send_links_policy", label: "group.whoCanLinks" },
-] as const;
-
 export function GroupProfileDialog({ open, onOpenChange, chat, members, profiles, onChanged }: Props) {
   const { t } = useI18n();
   const { user } = useAuth();
   const { isUserOnline, live } = usePresence();
   const navigate = useNavigate();
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   const myRole = members.find((m) => m.user_id === user?.id)?.role ?? "member";
   const canManage = myRole === "owner" || myRole === "admin";
   const isOwner = myRole === "owner";
-
   const [busy, setBusy] = useState(false);
-  const [title, setTitle] = useState(chat.title ?? "");
-  const [description, setDescription] = useState(chat.description ?? "");
-  const [permissions, setPermissions] = useState<Record<string, ChatPermission>>({
-    send_messages_policy: chat.send_messages_policy ?? "everyone",
-    send_media_policy: chat.send_media_policy ?? "everyone",
-    send_files_policy: chat.send_files_policy ?? "everyone",
-    send_links_policy: chat.send_links_policy ?? "everyone",
-  });
-
-  useEffect(() => {
-    setTitle(chat.title ?? "");
-    setDescription(chat.description ?? "");
-    setPermissions({
-      send_messages_policy: chat.send_messages_policy ?? "everyone",
-      send_media_policy: chat.send_media_policy ?? "everyone",
-      send_files_policy: chat.send_files_policy ?? "everyone",
-      send_links_policy: chat.send_links_policy ?? "everyone",
-    });
-  }, [chat]);
-
-  // --- Add members -------------------------------------------------------
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState<Profile[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const memberIds = useMemo(() => new Set(members.map((m) => m.user_id)), [members]);
 
+  // Do not reveal a directory of all users. Search only after three characters.
   useEffect(() => {
-    if (!open || !canManage) return;
-    let active = true;
-    const timer = setTimeout(async () => {
-      let request = supabase.from("profiles").select("*").limit(30);
-      if (query.trim()) {
-        request = request.or(`display_name.ilike.%${query.trim()}%,username.ilike.%${query.trim()}%`);
-      }
-      const { data } = await request;
-      if (!active) return;
-      setPeople(((data ?? []) as Profile[]).filter((p) => !memberIds.has(p.id)));
-    }, 250);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [query, open, canManage, memberIds]);
-
-  const saveInfo = useCallback(async () => {
-    setBusy(true);
-    const { error } = await supabase
-      .from("chats")
-      .update({
-        title: title.trim() || null,
-        description: description.trim() || null,
-        ...permissions,
-      })
-      .eq("id", chat.id);
-    setBusy(false);
-    if (error) {
-      toast.error(t("group.noPermission"), { description: error.message });
+    const term = query.trim();
+    if (!open || !canManage || term.length < 3) {
+      setPeople([]);
       return;
     }
-    toast.success(t("group.saved"));
-    onChanged();
-  }, [chat.id, title, description, permissions, onChanged, t]);
 
-  const changePhoto = useCallback(
-    async (file: File) => {
-      if (!user) return;
-      setBusy(true);
-      try {
-        const uploaded = await uploadMedia(file, user.id);
-        const { error } = await supabase.from("chats").update({ photo_url: uploaded.path }).eq("id", chat.id);
-        if (error) throw error;
-        toast.success(t("group.saved"));
-        onChanged();
-      } catch (error) {
-        toast.error(t("group.noPermission"), {
-          description: error instanceof Error ? error.message : undefined,
-        });
-      } finally {
-        setBusy(false);
+    let active = true;
+    const timer = window.setTimeout(async () => {
+      const safeTerm = term.replace(/[,%()]/g, " ").trim();
+      if (safeTerm.length < 3) {
+        if (active) setPeople([]);
+        return;
       }
-    },
-    [chat.id, user, onChanged, t],
-  );
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .or(`display_name.ilike.%${safeTerm}%,username.ilike.%${safeTerm}%`)
+        .limit(30);
+      if (!active) return;
+      if (error) {
+        setPeople([]);
+        return;
+      }
+      setPeople(((data ?? []) as Profile[]).filter((person) => !memberIds.has(person.id)));
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query, open, canManage, memberIds]);
 
   const setRole = useCallback(
     async (userId: string, role: "admin" | "member") => {
@@ -181,6 +116,8 @@ export function GroupProfileDialog({ open, onOpenChange, chat, members, profiles
       return;
     }
     setSelected([]);
+    setQuery("");
+    setPeople([]);
     toast.success(t("group.membersAdded"));
     onChanged();
   }, [chat.id, selected, onChanged, t]);
@@ -206,53 +143,35 @@ export function GroupProfileDialog({ open, onOpenChange, chat, members, profiles
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="z-[101] max-h-[85vh] overflow-y-auto border-border bg-card text-card-foreground shadow-2xl sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{chat.type === "channel" ? t("group.channelInfo") : t("group.info")}</DialogTitle>
           <DialogDescription>{chat.title ?? ""}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <UserAvatar name={chat.title ?? "Chat"} src={chat.photo_url} className="size-16" />
-            {canManage ? (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -end-1 rounded-full bg-primary p-1.5 text-primary-foreground"
-                aria-label={t("group.photo")}
-              >
-                <Camera className="size-3.5" />
-              </button>
-            ) : null}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (file) void changePhoto(file);
-              }}
-            />
-          </div>
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-background/70 p-3">
+          <UserAvatar name={chat.title ?? "Chat"} src={chat.photo_url} className="size-14" />
           <div className="min-w-0">
-            <p className="flex items-center gap-1.5 font-semibold"><span className="truncate">{chat.title}</span>{chat.type === "channel" && chat.is_verified ? <BadgeCheck className="size-4 text-primary" aria-label="Verified" /> : null}</p>
-            <p className="text-sm text-muted-foreground">
-              {members.length} {chat.type === "channel" ? t("group.members") : t("group.members")}
+            <p className="flex items-center gap-1.5 font-semibold">
+              <span className="truncate">{chat.title}</span>
+              {chat.type === "channel" && chat.is_verified ? (
+                <BadgeCheck className="size-4 shrink-0 text-primary" aria-label="Verified" />
+              ) : null}
             </p>
+            <p className="text-sm text-muted-foreground">
+              {members.length} {t("group.members")}
+            </p>
+            {chat.description ? <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{chat.description}</p> : null}
           </div>
         </div>
 
         <Tabs defaultValue="members" className="mt-2">
-          <TabsList className={canManage ? "grid w-full grid-cols-3" : "grid w-full grid-cols-1"}>
+          <TabsList className={canManage ? "grid w-full grid-cols-2" : "grid w-full grid-cols-1"}>
             <TabsTrigger value="members">{t("group.members")}</TabsTrigger>
             {canManage ? <TabsTrigger value="add">{t("group.addMembers")}</TabsTrigger> : null}
-            {canManage ? <TabsTrigger value="edit">{t("group.edit")}</TabsTrigger> : null}
           </TabsList>
 
-          <TabsContent value="members" className="space-y-1">
+          <TabsContent value="members" className="max-h-[45vh] space-y-1 overflow-y-auto">
             {sortedMembers.map((member) => {
               const profile = live(profiles[member.user_id]);
               const name = profile?.display_name ?? "Member";
@@ -271,7 +190,10 @@ export function GroupProfileDialog({ open, onOpenChange, chat, members, profiles
                     onClick={() => void openPersonalPage(member.user_id)}
                     title={t("group.goToPersonalPage")}
                   >
-                    <p className="flex items-center gap-1 text-sm font-medium"><span className="truncate">{name}</span>{profile?.is_verified ? <BadgeCheck className="size-4 text-primary" aria-label="Verified" /> : null}</p>
+                    <p className="flex items-center gap-1 text-sm font-medium">
+                      <span className="truncate">{name}</span>
+                      {profile?.is_verified ? <BadgeCheck className="size-4 text-primary" aria-label="Verified" /> : null}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">
                       {member.role === "owner"
                         ? t("group.owner")
@@ -319,77 +241,33 @@ export function GroupProfileDialog({ open, onOpenChange, chat, members, profiles
                   className="ps-9"
                 />
               </div>
-              <div className="max-h-64 space-y-1 overflow-y-auto">
-                {people.map((person) => (
-                  <label
-                    key={person.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl p-2 hover:bg-muted/60"
-                  >
-                    <Checkbox
-                      checked={selected.includes(person.id)}
-                      onCheckedChange={(checked) =>
-                        setSelected((prev) =>
-                          checked ? [...prev, person.id] : prev.filter((id) => id !== person.id),
-                        )
-                      }
-                    />
-                    <UserAvatar name={person.display_name} src={person.avatar_url} className="size-9" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{person.display_name}</p>
-                      <p className="truncate text-xs text-muted-foreground">@{person.username}</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
+              {query.trim().length < 3 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Type at least 3 characters to search for people.</p>
+              ) : people.length ? (
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  {people.map((person) => (
+                    <label key={person.id} className="flex cursor-pointer items-center gap-3 rounded-xl p-2 hover:bg-muted/60">
+                      <Checkbox
+                        checked={selected.includes(person.id)}
+                        onCheckedChange={(checked) =>
+                          setSelected((previous) =>
+                            checked ? [...previous, person.id] : previous.filter((id) => id !== person.id),
+                          )
+                        }
+                      />
+                      <UserAvatar name={person.display_name} src={person.avatar_url} className="size-9" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{person.display_name}</p>
+                        <p className="truncate text-xs text-muted-foreground">@{person.username}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="py-6 text-center text-sm text-muted-foreground">No matching people found.</p>
+              )}
               <Button className="w-full" disabled={busy || !selected.length} onClick={() => void addMembers()}>
-                {busy ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}{" "}
-                {t("group.add")}
-              </Button>
-            </TabsContent>
-          ) : null}
-
-          {canManage ? (
-            <TabsContent value="edit" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="group-name">{t("group.name")}</Label>
-                <Input id="group-name" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="group-description">{t("group.description")}</Label>
-                <Textarea
-                  id="group-description"
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  maxLength={300}
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-sm font-semibold">{t("group.permissions")}</p>
-                {PERMISSION_FIELDS.map((field) => (
-                  <div key={field.column} className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-muted-foreground">{t(field.label)}</span>
-                    <Select
-                      value={permissions[field.column] ?? "everyone"}
-                      onValueChange={(value) =>
-                        setPermissions((prev) => ({ ...prev, [field.column]: value as ChatPermission }))
-                      }
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="everyone">{t("group.everyone")}</SelectItem>
-                        <SelectItem value="admins">{t("group.adminsOnly")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-
-              <Button className="w-full" disabled={busy} onClick={() => void saveInfo()}>
-                {busy ? <Loader2 className="size-4 animate-spin" /> : null} {t("group.saved")}
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} {t("group.add")}
               </Button>
             </TabsContent>
           ) : null}
