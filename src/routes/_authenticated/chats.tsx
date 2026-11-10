@@ -24,10 +24,10 @@ function ChatsLayout() {
   const activeChatId = pathname.startsWith("/chats/") ? pathname.split("/")[2] : undefined;
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-background">
+    <div className="xgram-messenger-shell flex h-[100dvh] w-full overflow-hidden bg-background">
       <div
         className={cn(
-          "w-full min-w-0 border-r border-border md:w-80 lg:w-96",
+          "xgram-sidebar-pane w-full min-w-0 border-r border-border md:w-80 lg:w-96",
           activeChatId ? "hidden md:block" : "block",
         )}
       >
@@ -38,7 +38,7 @@ function ChatsLayout() {
           onRefresh={() => void refresh()}
         />
       </div>
-      <div className={cn("min-w-0 flex-1", activeChatId ? "block" : "hidden md:block")}>
+      <div className={cn("xgram-chat-pane min-w-0 flex-1", activeChatId ? "block" : "hidden md:block")}>
         <Outlet />
       </div>
     </div>

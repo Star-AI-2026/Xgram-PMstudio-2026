@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Bell, Check, Globe, Layers, LogOut, Monitor, Moon, Sparkles, Sun, User, Waves } from "lucide-react";
+import { ArrowLeft, Bell, Check, Globe, LogOut, Monitor, Moon, Sparkles, Sun, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
-import { LANGUAGES, useI18n, type Language, type TranslationKey } from "@/lib/i18n";
-import { useTheme, type ThemeMode, type VisualStyle } from "@/lib/theme";
+import { LANGUAGES, useI18n, type Language } from "@/lib/i18n";
+import { useTheme, type ThemeMode } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -34,7 +34,7 @@ const THEMES: { value: ThemeMode; key: "settings.light" | "settings.dark" | "set
 
 function SettingsPage() {
   const { profile, user, signOut } = useAuth();
-  const { theme, setTheme, visualStyle, setVisualStyle } = useTheme();
+  const { theme, setTheme, glassEnabled, setGlassEnabled } = useTheme();
   const { t, language, setLanguage } = useI18n();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(
@@ -141,36 +141,28 @@ function SettingsPage() {
         <section className="space-y-3">
           <div>
             <h2 className="flex items-center gap-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              <Sparkles className="size-3.5" /> {t("settings.visualStyle")}
+              <Sparkles className="size-3.5" /> {t("settings.liquidGlass")}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">{t("settings.visualStyleHint")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("settings.liquidGlassHint")}</p>
           </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {([
-              { value: "classic", label: "settings.styleClassic", hint: "settings.styleClassicHint", icon: Layers },
-              { value: "blur", label: "settings.styleBlur", hint: "settings.styleBlurHint", icon: Waves },
-              { value: "liquid-glass", label: "settings.styleLiquidGlass", hint: "settings.styleLiquidGlassHint", icon: Sparkles },
-            ] as { value: VisualStyle; label: TranslationKey; hint: TranslationKey; icon: typeof Layers }[]).map((entry) => (
-              <button
-                key={entry.value}
-                type="button"
-                aria-pressed={visualStyle === entry.value}
-                onClick={() => setVisualStyle(entry.value)}
-                className={cn(
-                  "group flex min-h-28 flex-col items-start gap-2 rounded-2xl border p-3 text-start transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft",
-                  visualStyle === entry.value
-                    ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
-                    : "border-border text-muted-foreground hover:bg-accent/70",
-                )}
-              >
-                <span className="flex w-full items-center justify-between">
-                  <entry.icon className="size-5" />
-                  {visualStyle === entry.value ? <Check className="size-4 text-primary" /> : null}
-                </span>
-                <span className="text-sm font-semibold">{t(entry.label)}</span>
-                <span className="text-xs leading-relaxed text-muted-foreground">{t(entry.hint)}</span>
-              </button>
-            ))}
+          <div className="xgram-setting-glass-row flex items-center gap-4 rounded-2xl border border-border p-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Sparkles className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Label htmlFor="liquid-glass" className="text-sm font-semibold">
+                {t("settings.enableLiquidGlass")}
+              </Label>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {t("settings.enableLiquidGlassHint")}
+              </p>
+            </div>
+            <Switch
+              id="liquid-glass"
+              checked={glassEnabled}
+              onCheckedChange={setGlassEnabled}
+              aria-label={t("settings.enableLiquidGlass")}
+            />
           </div>
         </section>
 

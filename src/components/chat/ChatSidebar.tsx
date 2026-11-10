@@ -116,7 +116,7 @@ export function ChatSidebar({
   };
 
   return (
-    <aside className={cn("flex h-full min-h-0 w-full flex-col bg-sidebar text-sidebar-foreground", className)}>
+    <aside className={cn("xgram-sidebar flex h-full min-h-0 w-full flex-col bg-sidebar text-sidebar-foreground", className)}>
       <div className="flex items-center justify-between gap-2 px-4 py-3">
         <Link to="/chats" className="flex items-center gap-2">
           <XgramLogo size={28} withWordmark />
@@ -217,7 +217,7 @@ export function ChatSidebar({
                 to="/chats/$chatId"
                 params={{ chatId: item.chat.id }}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors",
+                  "xgram-chat-list-item flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors",
                   activeChatId === item.chat.id
                     ? "bg-sidebar-primary/15"
                     : "hover:bg-sidebar-accent",

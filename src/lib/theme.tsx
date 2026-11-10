@@ -1,19 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type ThemeMode = "light" | "dark" | "system";
-export type VisualStyle = "classic" | "blur" | "liquid-glass";
 
 type ThemeContextValue = {
   theme: ThemeMode;
   resolved: "light" | "dark";
   setTheme: (theme: ThemeMode) => void;
-  visualStyle: VisualStyle;
-  setVisualStyle: (style: VisualStyle) => void;
+  glassEnabled: boolean;
+  setGlassEnabled: (enabled: boolean) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "xgram.theme";
-const VISUAL_STYLE_KEY = "xgram.visual-style";
+const GLASS_KEY = "xgram.liquid-glass";
+const LEGACY_VISUAL_STYLE_KEY = "xgram.visual-style";
 
 function applyTheme(mode: ThemeMode): "light" | "dark" {
   const prefersDark =
@@ -24,19 +24,31 @@ function applyTheme(mode: ThemeMode): "light" | "dark" {
   return resolved;
 }
 
+function applyGlass(enabled: boolean) {
+  const root = document.documentElement;
+  root.dataset.visualStyle = enabled ? "liquid-glass" : "classic";
+  root.dataset.liquidGlass = enabled ? "on" : "off";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>("system");
   const [resolved, setResolved] = useState<"light" | "dark">("dark");
-  const [visualStyle, setVisualStyleState] = useState<VisualStyle>("liquid-glass");
+  const [glassEnabled, setGlassEnabledState] = useState(true);
 
   useEffect(() => {
-    const stored = (localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? "system";
-    setThemeState(stored);
-    setResolved(applyTheme(stored));
-    const storedStyle = (localStorage.getItem(VISUAL_STYLE_KEY) as VisualStyle | null) ?? "liquid-glass";
-    const safeStyle: VisualStyle = ["classic", "blur", "liquid-glass"].includes(storedStyle) ? storedStyle : "classic";
-    setVisualStyleState(safeStyle);
-    document.documentElement.dataset.visualStyle = safeStyle;
+    const storedTheme = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
+    const safeTheme: ThemeMode = ["light", "dark", "system"].includes(storedTheme ?? "")
+      ? (storedTheme as ThemeMode)
+      : "system";
+    setThemeState(safeTheme);
+    setResolved(applyTheme(safeTheme));
+
+    // Migrate the previous three-choice appearance setting without losing the user's choice.
+    const storedGlass = localStorage.getItem(GLASS_KEY);
+    const legacyStyle = localStorage.getItem(LEGACY_VISUAL_STYLE_KEY);
+    const enabled = storedGlass === null ? legacyStyle !== "classic" : storedGlass === "true";
+    setGlassEnabledState(enabled);
+    applyGlass(enabled);
   }, []);
 
   useEffect(() => {
@@ -54,13 +66,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setResolved(applyTheme(next));
   }, []);
 
-  const setVisualStyle = useCallback((next: VisualStyle) => {
-    localStorage.setItem(VISUAL_STYLE_KEY, next);
-    document.documentElement.dataset.visualStyle = next;
-    setVisualStyleState(next);
+  const setGlassEnabled = useCallback((enabled: boolean) => {
+    localStorage.setItem(GLASS_KEY, String(enabled));
+    setGlassEnabledState(enabled);
+    applyGlass(enabled);
   }, []);
 
-  const value = useMemo(() => ({ theme, resolved, setTheme, visualStyle, setVisualStyle }), [theme, resolved, setTheme, visualStyle, setVisualStyle]);
+  const value = useMemo(
+    () => ({ theme, resolved, setTheme, glassEnabled, setGlassEnabled }),
+    [theme, resolved, setTheme, glassEnabled, setGlassEnabled],
+  );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

@@ -354,3 +354,274 @@ html[data-visual-style="liquid-glass"] .composer-shell { animation: xgram-surfac
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* --------------------------------------------------------------------------
+   Xgram Liquid Glass system
+   The glass treatment is controlled by Settings > Liquid Glass. The classic
+   fallback remains fully opaque and accessible when the switch is disabled.
+   -------------------------------------------------------------------------- */
+
+.xgram-messenger-shell {
+  position: relative;
+  isolation: isolate;
+  background: var(--color-background);
+}
+
+html[data-visual-style="liquid-glass"] body {
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(ellipse at 8% 8%, color-mix(in oklch, var(--color-primary) 15%, transparent), transparent 42%),
+    radial-gradient(ellipse at 92% 18%, color-mix(in oklch, oklch(0.76 0.14 178) 13%, transparent), transparent 38%),
+    radial-gradient(ellipse at 55% 100%, color-mix(in oklch, oklch(0.66 0.16 285) 10%, transparent), transparent 44%);
+  background-attachment: fixed;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-messenger-shell {
+  background: transparent;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar-pane {
+  position: relative;
+  z-index: 1;
+  background: color-mix(in oklch, var(--color-sidebar) 76%, transparent);
+  border-color: color-mix(in oklch, var(--color-foreground) 10%, transparent);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
+  backdrop-filter: blur(30px) saturate(175%);
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar {
+  background: transparent;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar > div:first-child,
+html[data-visual-style="liquid-glass"] .xgram-glass-header,
+html[data-visual-style="liquid-glass"] .xgram-glass-subbar {
+  background: linear-gradient(135deg,
+    color-mix(in oklch, var(--color-card) 78%, white 7%),
+    color-mix(in oklch, var(--color-card) 70%, transparent));
+  border-color: color-mix(in oklch, var(--color-foreground) 10%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar > div:first-child,
+html[data-visual-style="liquid-glass"] .xgram-glass-header {
+  box-shadow: 0 1px 0 color-mix(in oklch, white 32%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-pane,
+html[data-visual-style="liquid-glass"] .xgram-chat-view {
+  background: transparent;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-view {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-canvas {
+  background:
+    radial-gradient(ellipse at 50% 4%, color-mix(in oklch, var(--color-primary) 7%, transparent), transparent 58%),
+    transparent;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-list-item {
+  position: relative;
+  border: 1px solid transparent;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 220ms ease,
+    border-color 220ms ease, box-shadow 220ms ease;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-list-item:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklch, var(--color-card) 60%, transparent);
+  border-color: color-mix(in oklch, var(--color-foreground) 9%, transparent);
+  box-shadow: 0 7px 22px color-mix(in oklch, var(--color-background) 36%, transparent);
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-list-item[aria-current="page"],
+html[data-visual-style="liquid-glass"] .xgram-chat-list-item[data-status="active"] {
+  background: linear-gradient(120deg,
+    color-mix(in oklch, var(--color-primary) 17%, transparent),
+    color-mix(in oklch, var(--color-card) 42%, transparent));
+  border-color: color-mix(in oklch, var(--color-primary) 28%, transparent);
+  box-shadow: 0 1px 0 color-mix(in oklch, white 25%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar input,
+html[data-visual-style="liquid-glass"] .xgram-sidebar [data-slot="input"] {
+  background: color-mix(in oklch, var(--color-card) 58%, transparent);
+  border-color: color-mix(in oklch, var(--color-foreground) 10%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-bubble {
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--color-foreground) 10%, transparent);
+  box-shadow: 0 8px 25px color-mix(in oklch, var(--color-background) 20%, transparent),
+    0 1px 0 color-mix(in oklch, white 30%, transparent) inset;
+  -webkit-backdrop-filter: blur(22px) saturate(175%);
+  backdrop-filter: blur(22px) saturate(175%);
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-bubble::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: 42%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, color-mix(in oklch, white 18%, transparent), transparent);
+  pointer-events: none;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-bubble > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-incoming {
+  background: linear-gradient(145deg,
+    color-mix(in oklch, var(--color-card) 78%, white 7%),
+    color-mix(in oklch, var(--color-card) 66%, transparent));
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-own {
+  background: linear-gradient(145deg,
+    color-mix(in oklch, var(--color-bubble-out) 90%, white 10%),
+    color-mix(in oklch, var(--color-bubble-out) 82%, oklch(0.38 0.17 250) 18%));
+  border-color: color-mix(in oklch, var(--color-bubble-out) 40%, white 18%);
+  box-shadow: 0 9px 26px color-mix(in oklch, var(--color-bubble-out) 19%, transparent),
+    0 1px 0 color-mix(in oklch, white 36%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-message-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 30px color-mix(in oklch, var(--color-background) 25%, transparent),
+    0 1px 0 color-mix(in oklch, white 35%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .composer-shell {
+  border-color: color-mix(in oklch, var(--color-foreground) 15%, transparent);
+  background: linear-gradient(145deg,
+    color-mix(in oklch, var(--color-card) 76%, white 8%),
+    color-mix(in oklch, var(--color-card) 62%, transparent));
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  backdrop-filter: blur(30px) saturate(190%);
+  box-shadow: 0 16px 42px color-mix(in oklch, var(--color-background) 38%, transparent),
+    0 1px 0 color-mix(in oklch, white 32%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .composer-shell::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 18%, color-mix(in oklch, white 12%, transparent) 48%, transparent 76%);
+  opacity: .55;
+  mask-image: linear-gradient(#000, transparent 72%);
+}
+
+html[data-visual-style="liquid-glass"] .composer-input {
+  background: color-mix(in oklch, var(--color-background) 44%, transparent);
+  border-color: color-mix(in oklch, var(--color-foreground) 11%, transparent);
+}
+
+html[data-visual-style="liquid-glass"] [role="dialog"],
+html[data-visual-style="liquid-glass"] [data-radix-popper-content-wrapper] > *,
+html[data-visual-style="liquid-glass"] .xgram-setting-glass-row {
+  border-color: color-mix(in oklch, var(--color-foreground) 12%, transparent);
+  background: linear-gradient(145deg,
+    color-mix(in oklch, var(--color-card) 84%, white 5%),
+    color-mix(in oklch, var(--color-card) 70%, transparent));
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
+  box-shadow: 0 15px 42px color-mix(in oklch, var(--color-background) 26%, transparent),
+    0 1px 0 color-mix(in oklch, white 25%, transparent) inset;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar button,
+html[data-visual-style="liquid-glass"] .xgram-glass-header button,
+html[data-visual-style="liquid-glass"] .xgram-chat-view button {
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1), background-color 200ms ease,
+    color 200ms ease, box-shadow 200ms ease;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-sidebar button:active:not(:disabled),
+html[data-visual-style="liquid-glass"] .xgram-glass-header button:active:not(:disabled),
+html[data-visual-style="liquid-glass"] .xgram-chat-view button:active:not(:disabled) {
+  transform: scale(.96);
+}
+
+html[data-visual-style="liquid-glass"] .xgram-setting-glass-row {
+  box-shadow: 0 10px 30px color-mix(in oklch, var(--color-background) 16%, transparent),
+    0 1px 0 color-mix(in oklch, white 26%, transparent) inset;
+}
+
+@keyframes xgram-glass-pop {
+  from { opacity: 0; transform: translateY(12px) scale(.975); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes xgram-glass-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html[data-visual-style="liquid-glass"] .xgram-glass-header,
+html[data-visual-style="liquid-glass"] .xgram-sidebar > div:first-child {
+  animation: xgram-glass-fade 420ms ease-out both;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-setting-glass-row,
+html[data-visual-style="liquid-glass"] [role="dialog"][data-state="open"],
+html[data-visual-style="liquid-glass"] [data-radix-popper-content-wrapper] > * {
+  animation: xgram-glass-pop 260ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+html[data-visual-style="classic"] .xgram-messenger-shell,
+html[data-visual-style="classic"] .xgram-sidebar,
+html[data-visual-style="classic"] .xgram-chat-view {
+  background: var(--color-background);
+}
+
+html[data-visual-style="classic"] .xgram-message-bubble {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 767px) {
+  html[data-visual-style="liquid-glass"] .xgram-sidebar-pane {
+    border-right: 0;
+  }
+  html[data-visual-style="liquid-glass"] .xgram-glass-header {
+    padding-top: max(.625rem, env(safe-area-inset-top));
+  }
+  html[data-visual-style="liquid-glass"] .xgram-message-canvas {
+    overscroll-behavior: contain;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-visual-style="liquid-glass"] .xgram-sidebar-pane,
+  html[data-visual-style="liquid-glass"] .xgram-glass-header,
+  html[data-visual-style="liquid-glass"] .xgram-glass-subbar,
+  html[data-visual-style="liquid-glass"] .xgram-message-bubble,
+  html[data-visual-style="liquid-glass"] .composer-shell {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-view,
+html[data-visual-style="liquid-glass"] main {
+  animation: xgram-glass-pop 280ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+html[data-visual-style="liquid-glass"] .xgram-chat-list-item {
+  animation: xgram-glass-fade 300ms ease-out both;
+}

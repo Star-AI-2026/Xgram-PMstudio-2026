@@ -403,7 +403,7 @@ function ChatView() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-chat-canvas">
+      <div className="xgram-chat-view flex h-full items-center justify-center bg-chat-canvas">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -411,7 +411,7 @@ function ChatView() {
 
   if (!chat) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 bg-chat-canvas text-center">
+      <div className="xgram-chat-view flex h-full flex-col items-center justify-center gap-3 bg-chat-canvas text-center">
         <p className="text-sm text-muted-foreground">{t("chat.unavailable")}</p>
         <Button variant="outline" onClick={() => void navigate({ to: "/chats" })}>
           {t("chat.backToChats")}
@@ -421,8 +421,8 @@ function ChatView() {
   }
 
   return (
-    <div className="flex h-[100dvh] min-h-0 flex-col bg-chat-canvas">
-      <header className="flex items-center gap-2 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur-sm">
+    <div className="xgram-chat-view flex h-[100dvh] min-h-0 flex-col bg-chat-canvas">
+      <header className="xgram-glass-header flex items-center gap-2 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur-sm">
         <Button asChild size="icon" variant="ghost" className="size-9 md:hidden" aria-label={t("common.back")}>
           <Link to="/chats">
             <ArrowLeft className="size-5 rtl:rotate-180" />
@@ -487,7 +487,7 @@ function ChatView() {
       ) : null}
 
       {searchOpen ? (
-        <div className="border-b border-border bg-card/60 px-3 py-2">
+        <div className="xgram-glass-subbar border-b border-border bg-card/60 px-3 py-2">
           <Input
             autoFocus
             value={search}
@@ -498,7 +498,7 @@ function ChatView() {
         </div>
       ) : null}
 
-      <div className="scroll-slim flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-4">
+      <div className="xgram-message-canvas scroll-slim flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto py-4">
         {visibleMessages.length === 0 ? (
           <p className="mt-10 text-center text-sm text-muted-foreground">
             {search ? t("chat.noSearchResults") : t("chat.noMessages")}

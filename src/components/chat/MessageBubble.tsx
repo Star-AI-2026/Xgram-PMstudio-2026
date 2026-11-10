@@ -74,10 +74,10 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "animate-bubble-in relative rounded-2xl px-3 py-2 shadow-soft",
+            "xgram-message-bubble animate-bubble-in relative rounded-2xl px-3 py-2 shadow-soft",
             own
-              ? "rounded-br-md bg-bubble-out text-bubble-out-foreground"
-              : "rounded-bl-md bg-bubble-in text-bubble-in-foreground",
+              ? "xgram-message-own rounded-br-md bg-bubble-out text-bubble-out-foreground"
+              : "xgram-message-incoming rounded-bl-md bg-bubble-in text-bubble-in-foreground",
             deleted && "opacity-70 italic",
           )}
         >
