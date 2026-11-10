@@ -10,7 +10,6 @@ import { useEffect } from "react";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
-import { NetworkStatusOverlay } from "@/components/NetworkStatusOverlay";
 import { ThemeProvider } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/i18n";
 import { PresenceProvider } from "@/lib/presence";
@@ -136,7 +135,7 @@ function RootComponent() {
             <PresenceProvider>
               <TooltipProvider delayDuration={200}>
                   {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                  <AccountAccessBoundary><Outlet /><NetworkStatusOverlay /></AccountAccessBoundary>
+                  <AccountAccessBoundary><Outlet /></AccountAccessBoundary>
                   <Toaster position="top-center" richColors />
               </TooltipProvider>
             </PresenceProvider>

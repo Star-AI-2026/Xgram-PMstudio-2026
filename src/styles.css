@@ -302,3 +302,8 @@ button:active:not(:disabled), [role="button"]:active:not([aria-disabled="true"])
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
+
+
+/* Final share-demo layout: keep the composer flush with the viewport edge. */
+.composer-shell { margin-bottom: 0 !important; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+@media (max-width: 640px) { .composer-shell { margin-bottom: 0 !important; } }
