@@ -300,7 +300,7 @@ html[data-visual-style="liquid-glass"] .composer-shell,
 html[data-visual-style="liquid-glass"] header,
 html[data-visual-style="liquid-glass"] [role="dialog"],
 html[data-visual-style="liquid-glass"] [data-radix-popper-content-wrapper] > * {
-  position: relative;
+  /* Do not override fixed positioning on Radix dialogs/popovers. */
   isolation: isolate;
   background: linear-gradient(145deg,
     color-mix(in oklch, var(--color-card) 78%, white 8%),
