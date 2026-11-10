@@ -134,10 +134,8 @@ function AuthPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
-      <div className="pointer-events-none absolute -top-32 right-0 size-[26rem] rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 left-0 size-[22rem] rounded-full bg-accent/25 blur-3xl" />
 
-      <div className="glass-panel relative w-full max-w-md rounded-3xl p-7 shadow-soft">
+      <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-soft">
         <div className="flex flex-col items-center gap-2 text-center">
           <XgramLogo size={44} />
           <h1 className="font-display text-2xl font-semibold">Welcome to Xgram</h1>

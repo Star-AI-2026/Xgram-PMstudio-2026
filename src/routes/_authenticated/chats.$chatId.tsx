@@ -1,7 +1,7 @@
 import { freshChannel } from "@/lib/realtime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Phone, Search, Video, X, BadgeCheck } from "lucide-react";
+import { ArrowLeft, Loader2, Search, X, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { GroupProfileDialog } from "@/components/chat/GroupProfileDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { useCall } from "@/lib/calls";
 import { useI18n } from "@/lib/i18n";
 import { uploadMedia } from "@/lib/media";
 import { getCachedChatSnapshot, saveCachedChatSnapshot } from "@/lib/local-cache";
@@ -53,7 +52,6 @@ function ChatView() {
   const { chatId } = useParams({ from: "/_authenticated/chats/$chatId" });
   const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const { startCall } = useCall();
   const { t } = useI18n();
   const { isUserOnline, live } = usePresence();
 
@@ -422,7 +420,7 @@ function ChatView() {
 
   return (
     <div className="xgram-chat-view flex h-[100dvh] min-h-0 flex-col bg-chat-canvas">
-      <header className="xgram-glass-header flex items-center gap-2 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur-sm">
+      <header className="flex items-center gap-2 border-b border-border bg-card px-3 py-2.5">
         <Button asChild size="icon" variant="ghost" className="size-9 md:hidden" aria-label={t("common.back")}>
           <Link to="/chats">
             <ArrowLeft className="size-5 rtl:rotate-180" />
@@ -454,26 +452,6 @@ function ChatView() {
         <Button size="icon" variant="ghost" className="size-9" onClick={() => setSearchOpen((v) => !v)} aria-label={t("common.search")}>
           {searchOpen ? <X className="size-5" /> : <Search className="size-5" />}
         </Button>
-        <Button size="icon" variant="ghost" className="size-9" onClick={() => {
-            if (!peer) {
-              toast.error("Calls are only available in direct chats");
-              return;
-            }
-            void startCall({
-              chatId,
-              peer: {
-                id: peer.id,
-                name: peer.display_name,
-                username: peer.username ?? null,
-                avatarUrl: peer.avatar_url ?? null,
-              },
-            });
-          }} aria-label={t("common.call")}>
-          <Phone className="size-5" />
-        </Button>
-        <Button size="icon" variant="ghost" className="size-9" onClick={() => toast.info("Video calls are coming soon")} aria-label="Video call">
-          <Video className="size-5" />
-        </Button>
       </header>
       {chat.type !== "direct" ? (
         <GroupProfileDialog
@@ -487,7 +465,7 @@ function ChatView() {
       ) : null}
 
       {searchOpen ? (
-        <div className="xgram-glass-subbar border-b border-border bg-card/60 px-3 py-2">
+        <div className="border-b border-border bg-card px-3 py-2">
           <Input
             autoFocus
             value={search}

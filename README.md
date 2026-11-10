@@ -621,7 +621,6 @@ Subtle Shadows
 
 Smooth Animations
 
-Glass/Blur فقط در جاهایی که مناسب است
 
 Micro Interactions
 

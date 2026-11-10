@@ -6,12 +6,10 @@ import {
   useRouter,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
-import { CallProvider } from "@/lib/calls";
-import { CallOverlay } from "@/components/chat/CallOverlay";
 import { NetworkStatusOverlay } from "@/components/NetworkStatusOverlay";
 import { ThemeProvider } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/i18n";
@@ -91,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "description",
         content: "Xgram is a modern messenger with real-time chats, groups, channels and media sharing.",
       },
-      { name: "theme-color", content: "#0b1220" },
+      { name: "theme-color", content: "#30203d" },
       { property: "og:title", content: "Xgram — Fast, private messaging" },
       {
         property: "og:description",
@@ -136,14 +134,11 @@ function RootComponent() {
         <LanguageProvider>
           <AuthProvider>
             <PresenceProvider>
-              <CallProvider>
-                <TooltipProvider delayDuration={200}>
+              <TooltipProvider delayDuration={200}>
                   {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                  <AccountAccessBoundary><Outlet /><CallOverlay /><NetworkStatusOverlay /></AccountAccessBoundary>
+                  <AccountAccessBoundary><Outlet /><NetworkStatusOverlay /></AccountAccessBoundary>
                   <Toaster position="top-center" richColors />
-
-                </TooltipProvider>
-              </CallProvider>
+              </TooltipProvider>
             </PresenceProvider>
           </AuthProvider>
         </LanguageProvider>

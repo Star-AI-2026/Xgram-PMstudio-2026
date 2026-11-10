@@ -5,8 +5,8 @@
   "start_url": "/Xgram-PMstudio-2026/",
   "scope": "/Xgram-PMstudio-2026/",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#21172a",
+  "theme_color": "#30203d",
   "icons": [
     {
       "src": "/Xgram-PMstudio-2026/favicon.png",

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/integrations/supabase/client';
-import { activeBan } from '@/lib/admin.schemas';
+import { activeBan } from '@/lib/account-ban';
 import { XgramLogo } from '@/components/XgramLogo';
 
 export function AccountAccessBoundary({children}:{children:ReactNode}) {

@@ -147,9 +147,6 @@ export function NetworkStatusOverlay() {
           const sync: Promise<unknown>[] = [
             authRef.current.refreshProfile(),
             fetchChatSummaries(currentUser.id, signal),
-            Promise.resolve(supabase.from("calls").select("id,status,updated_at")
-              .or(`caller_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`).limit(100).abortSignal(signal)
-              .then(({ error }) => { if (error) throw error; })),
             queryClient.refetchQueries({ type: "active" }),
           ];
           if (chatId) {

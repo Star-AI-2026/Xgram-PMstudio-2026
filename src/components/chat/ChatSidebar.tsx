@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Archive,
@@ -10,11 +10,14 @@ import {
   PinOff,
   Plus,
   Search,
-  Settings,
+  MoreHorizontal,
   Users,
   BadgeCheck,
   Megaphone,
   Bookmark,
+  LoaderCircle,
+  WifiOff,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +43,36 @@ import { cn } from "@/lib/utils";
 import { formatTime, type ChatSummary } from "@/lib/xgram";
 
 type Filter = "all" | "unread" | "direct" | "group" | "channel" | "archived";
+type StartupPhase = "waiting" | "connecting" | "updating" | "ready";
+
+function StartupBrand({ phase }: { phase: StartupPhase }) {
+  if (phase === "ready") {
+    return (
+      <Link to="/chats" aria-label="Xgram" className="inline-flex min-w-0 items-center justify-center">
+        <XgramLogo size={28} withWordmark />
+      </Link>
+    );
+  }
+
+  const status = {
+    waiting: { label: "Waiting for network", Icon: WifiOff },
+    connecting: { label: "Connecting", Icon: LoaderCircle },
+    updating: { label: "Updating", Icon: RefreshCw },
+  }[phase];
+  const Icon = status.Icon;
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-w-0 items-center justify-center gap-2 truncate text-[11px] font-medium tracking-wide text-muted-foreground"
+      title={status.label}
+    >
+      <Icon className={`size-3.5 shrink-0 ${phase === "waiting" ? "" : "animate-spin"}`} />
+      <span className="truncate">{status.label}</span>
+    </div>
+  );
+}
 
 const FILTERS: { key: Filter; label: TranslationKey; icon: typeof MessagesSquare }[] = [
   { key: "all", label: "filter.all", icon: MessagesSquare },
@@ -70,6 +103,45 @@ export function ChatSidebar({
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [startupPhase, setStartupPhase] = useState<StartupPhase>("waiting");
+
+  // Show Telegram-like connection/startup states in the sidebar brand area.
+  // Offline state is driven by the browser; after reconnection, show the app's
+  // initial chat loading state before revealing the real Xgram logo.
+  useEffect(() => {
+    let connectingTimer: number | undefined;
+    const clearConnectingTimer = () => {
+      if (connectingTimer !== undefined) window.clearTimeout(connectingTimer);
+      connectingTimer = undefined;
+    };
+    const beginConnection = () => {
+      clearConnectingTimer();
+      if (!navigator.onLine) {
+        setStartupPhase("waiting");
+        return;
+      }
+      setStartupPhase("connecting");
+      connectingTimer = window.setTimeout(() => setStartupPhase("updating"), 650);
+    };
+    const handleOffline = () => {
+      clearConnectingTimer();
+      setStartupPhase("waiting");
+    };
+    window.addEventListener("online", beginConnection);
+    window.addEventListener("offline", handleOffline);
+    beginConnection();
+    return () => {
+      clearConnectingTimer();
+      window.removeEventListener("online", beginConnection);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (startupPhase !== "updating" || loading || !navigator.onLine) return;
+    const readyTimer = window.setTimeout(() => setStartupPhase("ready"), 450);
+    return () => window.clearTimeout(readyTimer);
+  }, [startupPhase, loading]);
 
   // Overlay the freshest profile data so renamed peers and new photos appear instantly.
   const fresh = useMemo(
@@ -117,11 +189,11 @@ export function ChatSidebar({
 
   return (
     <aside className={cn("xgram-sidebar flex h-full min-h-0 w-full flex-col bg-sidebar text-sidebar-foreground", className)}>
-      <div className="flex items-center justify-between gap-2 px-4 py-3">
-        <Link to="/chats" className="flex items-center gap-2">
-          <XgramLogo size={28} withWordmark />
-        </Link>
-        <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2 px-4 py-3">
+        <div className="flex min-w-0 flex-1 items-center justify-center px-1">
+          <StartupBrand phase={startupPhase} />
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
           <Button size="icon" variant="ghost" className="size-9" onClick={() => setDialogOpen(true)} aria-label={t("chat.newChat")}>
             <Plus className="size-5" />
           </Button>
@@ -143,9 +215,6 @@ export function ChatSidebar({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => void navigate({ to: "/contacts" })}>
                 <MessagesSquare className="size-4" /> {t("common.contacts")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => void navigate({ to: "/settings" })}>
-                <Settings className="size-4" /> {t("common.settings")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => void handleSignOut()}>
@@ -268,7 +337,7 @@ export function ChatSidebar({
                     className="absolute top-1 right-1 size-6 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
                     aria-label="Chat options"
                   >
-                    <Settings className="size-3.5" />
+                    <MoreHorizontal className="size-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
